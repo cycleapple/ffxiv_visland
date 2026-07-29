@@ -59,8 +59,8 @@ public unsafe class GatherDebug(GatherRouteExec exec)
         {
             Utils.DrawSection("Target", ImGuiColors.ParsedGold);
             var t = Svc.Targets.Target;
-            ImGuiEx.Text($"IsNode: {GenericHelpers.GetRow<GatheringPoint>(t.DataId)}");
-            ImGuiEx.Text($"GatheringType: {GenericHelpers.GetRow<GatheringPoint>(t.DataId)!.Value.GatheringPointBase.Value.GatheringType.RowId}");
+            ImGuiEx.Text($"IsNode: {GenericHelpers.GetRow<GatheringPoint>(t.BaseId)}");
+            ImGuiEx.Text($"GatheringType: {GenericHelpers.GetRow<GatheringPoint>(t.BaseId)!.Value.GatheringPointBase.Value.GatheringType.RowId}");
         }
         if (exec.CurrentRoute != null && exec.CurrentRoute.TargetGatherItem != default)
         {

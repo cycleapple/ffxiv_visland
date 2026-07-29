@@ -3,4 +3,4 @@
 	url = https://github.com/NightmareXIV/ECommons.git
 [submodule "AutoRetainerAPI"]
 	path = AutoRetainerAPI
-	url = https://github.com/PunishXIV/AutoRetainerAPI
+	url = https://github.com/cycleapple/AutoRetainerAPI
