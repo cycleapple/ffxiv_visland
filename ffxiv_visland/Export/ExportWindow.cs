@@ -16,7 +16,7 @@ unsafe class ExportWindow : UIAttachedWindow
     private ExportDebug _debug = new();
     private Throttle _exportThrottle = new(); // export seems to close & reopen window?..
 
-    public ExportWindow() : base("Exports Automation", "MJIDisposeShop", new(400, 600))
+    public ExportWindow() : base("出口交易自動化", "MJIDisposeShop", new(400, 600))
     {
         _config = Service.Config.Get<ExportConfig>();
     }
@@ -41,10 +41,10 @@ unsafe class ExportWindow : UIAttachedWindow
         using var tabs = ImRaii.TabBar("Tabs");
         if (tabs)
         {
-            using (var tab = ImRaii.TabItem("Main"))
+            using (var tab = ImRaii.TabItem("主要"))
                 if (tab)
                     DrawMain();
-            using (var tab = ImRaii.TabItem("Debug"))
+            using (var tab = ImRaii.TabItem("偵錯"))
                 if (tab)
                     _debug.Draw();
         }
@@ -52,20 +52,20 @@ unsafe class ExportWindow : UIAttachedWindow
 
     private void DrawMain()
     {
-        if (ImGui.Checkbox("Auto Export", ref _config.AutoSell))
+        if (ImGui.Checkbox("自動出口交易", ref _config.AutoSell))
             _config.NotifyModified();
         ImGui.PushItemWidth(150);
-        if (ImGui.SliderInt("Sell normal above", ref _config.NormalLimit, 0, 999))
+        if (ImGui.SliderInt("一般素材超過此數量時出售", ref _config.NormalLimit, 0, 999))
             _config.NotifyModified();
-        if (ImGui.SliderInt("Sell granary above", ref _config.GranaryLimit, 0, 999))
+        if (ImGui.SliderInt("開拓穀倉素材超過此數量時出售", ref _config.GranaryLimit, 0, 999))
             _config.NotifyModified();
-        if (ImGui.SliderInt("Sell farm above", ref _config.FarmLimit, 0, 999))
+        if (ImGui.SliderInt("耕地作物超過此數量時出售", ref _config.FarmLimit, 0, 999))
             _config.NotifyModified();
-        if (ImGui.SliderInt("Sell pasture above", ref _config.PastureLimit, 0, 999))
+        if (ImGui.SliderInt("放牧地素材超過此數量時出售", ref _config.PastureLimit, 0, 999))
             _config.NotifyModified();
         ImGui.PopItemWidth();
 
-        if (ImGui.Button("Sell everything above configured limits"))
+        if (ImGui.Button("出售所有超過設定上限的物品"))
             AutoExport();
     }
 

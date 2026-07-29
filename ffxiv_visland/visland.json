@@ -1,8 +1,8 @@
 {
   "Author": "veyn, croizat",
   "Name": "Visland",
-  "Punchline": "Automate island sanctuary activities",
-  "Description": "Automate gathering, workshop assignments, etc.",
+  "Punchline": "自動處理無人島開拓活動",
+  "Description": "自動進行採集、開拓工房排程及其他無人島活動。",
   "InternalName": "visland",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 13,

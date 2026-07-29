@@ -12,7 +12,7 @@ unsafe class WorkshopWindow : UIAttachedWindow
     private WorkshopOCImport _oc = new();
     private WorkshopDebug _debug = new();
 
-    public WorkshopWindow() : base("Workshop automation", "MJICraftSchedule", new(500, 650))
+    public WorkshopWindow() : base("開拓工房自動化", "MJICraftSchedule", new(500, 650))
     {
         _config = Service.Config.Get<WorkshopConfig>();
     }
@@ -31,16 +31,16 @@ unsafe class WorkshopWindow : UIAttachedWindow
         using var tabs = ImRaii.TabBar("Tabs");
         if (tabs)
         {
-            using (var tab = ImRaii.TabItem("OC import"))
+            using (var tab = ImRaii.TabItem("OC 排程匯入"))
                 if (tab)
                     _oc.Draw();
-            using (var tab = ImRaii.TabItem("Manual schedule"))
+            using (var tab = ImRaii.TabItem("手動排程"))
                 if (tab)
                     _manual.Draw();
-            using (var tab = ImRaii.TabItem("Settings"))
+            using (var tab = ImRaii.TabItem("設定"))
                 if (tab)
                     DrawSettings();
-            using (var tab = ImRaii.TabItem("Debug"))
+            using (var tab = ImRaii.TabItem("偵錯"))
                 if (tab)
                     _debug.Draw();
         }
@@ -60,11 +60,11 @@ unsafe class WorkshopWindow : UIAttachedWindow
 
     private void DrawSettings()
     {
-        if (ImGui.Checkbox("Automatically select next cycle on open", ref _config.AutoOpenNextDay))
+        if (ImGui.Checkbox("開啟時自動選擇下一個生產週期", ref _config.AutoOpenNextDay))
             _config.NotifyModified();
-        if (ImGui.Checkbox("Automatically import base recs on open", ref _config.AutoImport))
+        if (ImGui.Checkbox("開啟時自動匯入基礎推薦排程", ref _config.AutoImport))
             _config.NotifyModified();
-        if (ImGui.Checkbox("Use experimental favor solver", ref _config.UseFavorSolver))
+        if (ImGui.Checkbox("使用實驗性需求求解器", ref _config.UseFavorSolver))
             _config.NotifyModified();
     }
 }

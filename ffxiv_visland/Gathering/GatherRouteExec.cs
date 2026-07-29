@@ -160,7 +160,7 @@ public class GatherRouteExec : IDisposable
             var obj = Svc.Objects.FirstOrDefault(o => o?.ObjectKind == ObjectKind.GatheringPoint && o.IsTargetable && o?.Position.X - CurrentRoute.Waypoints[CurrentWaypoint].InteractWithPosition.X < 5 && o?.Position.Z - CurrentRoute.Waypoints[CurrentWaypoint].InteractWithPosition.Z < 5, null);
             if (obj != null)
             {
-                wp.InteractWithOID = obj.BaseId;
+                wp.InteractWithOID = obj.DataId;
                 wp.InteractWithName = obj.Name.TextValue;
                 wp.InteractWithPosition = obj.Position;
             }
@@ -206,7 +206,7 @@ public class GatherRouteExec : IDisposable
         if (needToGetCloser)
         {
             // skip current waypoint if target isn't there
-            if (wp.IsNode && Vector3.Distance(Player.Object.Position, wp.Position) < 50 && !Svc.Objects.Any(x => x.BaseId == wp.InteractWithOID && x.IsTargetable))
+            if (wp.IsNode && Vector3.Distance(Player.Object.Position, wp.Position) < 50 && !Svc.Objects.Any(x => x.DataId == wp.InteractWithOID && x.IsTargetable))
             {
                 PluginLog.Debug("Current waypoint target is not targetable, moving to next waypoint");
                 if (NavmeshIPC.IsRunning())
@@ -294,7 +294,7 @@ public class GatherRouteExec : IDisposable
                 }
                 break;
             case GatherRouteDB.InteractionType.NodeScan:
-                var objs = Svc.Objects.Where(o => o?.ObjectKind == ObjectKind.GatheringPoint && o.IsTargetable).OrderBy(x => x.BaseId);
+                var objs = Svc.Objects.Where(o => o?.ObjectKind == ObjectKind.GatheringPoint && o.IsTargetable).OrderBy(x => x.DataId);
                 if (objs.Any())
                 {
                     PluginLog.Debug($"Found {objs.Count()} GatheringPoints");
@@ -372,7 +372,7 @@ public class GatherRouteExec : IDisposable
 
         if (wp.IsPhantom && wp.IsLast(CurrentRoute)) // phantom nodes should have two interactions: standard and nodescan. Ideally find a better way than just duplicating the function here
         {
-            var objs = Svc.Objects.Where(o => o?.ObjectKind == ObjectKind.GatheringPoint && o.IsTargetable).OrderBy(x => x.BaseId);
+            var objs = Svc.Objects.Where(o => o?.ObjectKind == ObjectKind.GatheringPoint && o.IsTargetable).OrderBy(x => x.DataId);
             if (objs.Any())
             {
                 PluginLog.Debug($"Found {objs.Count()} GatheringPoints");
@@ -427,7 +427,7 @@ public class GatherRouteExec : IDisposable
         if (wp.InteractWithOID == 0)
             return null;
 
-        foreach (var obj in Service.ObjectTable.Where(o => o.BaseId == wp.InteractWithOID && (o.Position - wp.Position).LengthSquared() < 1))
+        foreach (var obj in Service.ObjectTable.Where(o => o.DataId == wp.InteractWithOID && (o.Position - wp.Position).LengthSquared() < 1))
             return obj.IsTargetable ? (GameObject*)obj.Address : null;
         return null;
     }
@@ -442,7 +442,7 @@ public class GatherRouteExec : IDisposable
             ZoneID = Svc.ClientState.TerritoryType,
             Radius = RouteDB.DefaultWaypointRadius,
             InteractWithName = obj.Name.TextValue,
-            InteractWithOID = obj.BaseId,
+            InteractWithOID = obj.DataId,
             InteractWithPosition = obj.Position,
             Interaction = GatherRouteDB.InteractionType.Standard,
             Movement = PlayerEx.InclusiveFlying ? GatherRouteDB.Movement.MountFly : GatherRouteDB.Movement.Normal
@@ -462,7 +462,7 @@ public class GatherRouteExec : IDisposable
             ZoneID = Svc.ClientState.TerritoryType,
             Radius = RouteDB.DefaultWaypointRadius,
             InteractWithName = marker.Node?.Name.TextValue ?? "",
-            InteractWithOID = marker.Node?.BaseId ?? 0,
+            InteractWithOID = marker.Node?.DataId ?? 0,
             InteractWithPosition = marker.Node?.Position ?? marker.Position,
             Interaction = GatherRouteDB.InteractionType.Standard,
             Movement = Svc.Condition[ConditionFlag.Diving] || marker.DistanceToLast > 30 ? GatherRouteDB.Movement.MountFly : GatherRouteDB.Movement.Normal
@@ -480,7 +480,7 @@ public class GatherRouteExec : IDisposable
                 var pos = new Vector3(marker.MapMarker.X / 16, Svc.ClientState.LocalPlayer!.Position.Y, marker.MapMarker.Y / 16);
                 var dist = index > 0 ? Vector3.Distance(Svc.Objects.ElementAt(index - 1).Position, pos) : 0;
                 var obj = Svc.Objects.FirstOrDefault(o => o?.ObjectKind == ObjectKind.GatheringPoint && o.IsTargetable && o?.Position.X - CurrentRoute!.Waypoints[CurrentWaypoint].InteractWithPosition.X < 5 && o?.Position.Z - CurrentRoute.Waypoints[CurrentWaypoint].InteractWithPosition.Z < 5, null);
-                PluginLog.Debug($"Found {nameof(MiniMapGatheringMarker)} @ {pos} {(obj != null ? $"and matching object [{obj.BaseId}] {obj.Name.TextValue} @ {obj.Position}" : string.Empty)}");
+                PluginLog.Debug($"Found {nameof(MiniMapGatheringMarker)} @ {pos} {(obj != null ? $"and matching object [{obj.DataId}] {obj.Name.TextValue} @ {obj.Position}" : string.Empty)}");
                 return (Marker: marker, Position: obj != null ? obj.Position : pos, DistanceToLast: dist, Node: obj);
             }).ToList();
     #endregion

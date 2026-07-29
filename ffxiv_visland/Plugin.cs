@@ -31,16 +31,16 @@ public sealed class Plugin : IDalamudPlugin
 {
     public static string Name => "visland";
     public static string Repo => "https://puni.sh/api/repository/veyn";
-    internal static string HelpMessage => "Opens the Gathering Menu\n" +
-        $"/{Name} moveto <X> <Y> <Z> → move to raw coordinates\n" +
-        $"/{Name} movedir <X> <Y> <Z> → move this many units over (relative to player facing)\n" +
-        $"/{Name} stop → stop current route\n" +
-        $"/{Name} pause → pause current route\n" +
-        $"/{Name} resume → resume current route\n" +
-        $"/{Name} exec <name> → run route by name continuously\n" +
-        $"/{Name} execonce <name> → run route by name once\n" +
-        $"/{Name} exectemp <base64 route> → run unsaved route continuously\n" +
-        $"/{Name} exectemponce <base64 route> → run unsaved route once";
+    internal static string HelpMessage => "開啟採集選單\n" +
+        $"/{Name} moveto <X> <Y> <Z> → 移動至指定座標\n" +
+        $"/{Name} movedir <X> <Y> <Z> → 依角色面向相對移動指定距離\n" +
+        $"/{Name} stop → 停止目前路線\n" +
+        $"/{Name} pause → 暫停目前路線\n" +
+        $"/{Name} resume → 繼續目前路線\n" +
+        $"/{Name} exec <name> → 依名稱循環執行路線\n" +
+        $"/{Name} execonce <name> → 依名稱執行路線一次\n" +
+        $"/{Name} exectemp <base64 route> → 循環執行未儲存路線\n" +
+        $"/{Name} exectemponce <base64 route> → 執行未儲存路線一次";
 
     internal static Plugin P = null!;
     internal Automation Automation;

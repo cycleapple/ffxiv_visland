@@ -47,11 +47,11 @@ public unsafe class WorkshopOCImport
     {
         using var globalDisable = ImRaii.Disabled(_pendingActions.Count > 0); // disallow any manipulations while delayed actions are in progress
 
-        if (ImGui.Button("Import Recommendations From Clipboard"))
+        if (ImGui.Button("從剪貼簿匯入推薦排程"))
             ImportRecsFromClipboard(false);
-        ImGuiComponents.HelpMarker("This is for importing schedules from the Overseas Casuals' Discord from your clipboard.\n" +
-                        "This importer detects the presence of an item's name (not including \"Isleworks\" et al) on each line.\n" +
-                        "You can copy an entire workshop's schedule from the discord, junk included.");
+        ImGuiComponents.HelpMarker("用於從剪貼簿匯入 Overseas Casuals Discord 提供的排程。\n" +
+                        "匯入器會在每一行偵測物品名稱（不包含「島產」等前綴）。\n" +
+                        "你可以直接複製 Discord 中包含其他文字的完整工房排程。");
 
         if (Recommendations.Empty)
             return;
@@ -60,59 +60,59 @@ public unsafe class WorkshopOCImport
 
         if (!_config.UseFavorSolver)
         {
-            ImGui.TextUnformatted("Favours");
-            ImGuiComponents.HelpMarker("Click the \"This Week's Favors\" or \"Next Week's Favors\" button to generate a bot command for the OC discord for your favors.\n" +
-                    "Then click the #bot-spam button to open discord to the channel, paste in the command and copy its output.\n" +
-                    "Finally, click the \"Override 4th workshop\" button to replace the regular recommendations with favor recommendations.");
+        ImGui.TextUnformatted("需求品");
+        ImGuiComponents.HelpMarker("按下「本週」或「下週」按鈕，可產生供 OC Discord 機器人使用的需求品指令。\n" +
+                    "接著按下 #bot-spam 按鈕開啟 Discord 頻道，貼上指令並複製輸出結果。\n" +
+                    "最後按下覆蓋工房的按鈕，以需求品推薦取代一般推薦排程。");
 
-            if (ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.Clipboard, "This Week's Favors"))
+            if (ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.Clipboard, "本週需求品"))
                 ImGui.SetClipboardText(CreateFavorRequestCommand(false));
             ImGui.SameLine();
-            if (ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.Clipboard, "Next Week's Favors"))
+            if (ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.Clipboard, "下週需求品"))
                 ImGui.SetClipboardText(CreateFavorRequestCommand(true));
 
             if (ImGui.Button("Overseas Casuals > #bot-spam"))
                 Util.OpenLink("discord://discord.com/channels/1034534280757522442/1034985297391407126");
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 Util.OpenLink("https://discord.com/channels/1034534280757522442/1034985297391407126");
-            ImGuiComponents.HelpMarker("\uE051: Discord app\n\uE052: Discord in browser");
+            ImGuiComponents.HelpMarker("\uE051：Discord 應用程式\n\uE052：瀏覽器版 Discord");
 
-            if (ImGui.Button("Override 4th workshop with favor schedules from clipboard"))
+        if (ImGui.Button("以剪貼簿中的需求品排程覆蓋第 4 間工房"))
                 OverrideSideRecsLastWorkshopClipboard();
-            if (ImGui.Button("Override closest workshops with favor schedules from clipboard"))
+        if (ImGui.Button("以剪貼簿中的需求品排程覆蓋最近可用工房"))
                 OverrideSideRecsAsapClipboard();
         }
         else
         {
-            ImGuiEx.TextV("Override 4th workshop with favors:");
+            ImGuiEx.TextV("以需求品排程覆蓋第 4 間工房：");
             ImGui.SameLine();
-            if (ImGui.Button($"This Week##4th"))
+            if (ImGui.Button($"本週##4th"))
                 OverrideSideRecsLastWorkshopSolver(false);
             ImGui.SameLine();
-            if (ImGui.Button($"Next Week##4th"))
+            if (ImGui.Button($"下週##4th"))
                 OverrideSideRecsLastWorkshopSolver(true);
 
-            ImGuiEx.TextV("Override closest workshops with favors:");
+            ImGuiEx.TextV("以需求品排程覆蓋最近可用工房：");
             ImGui.SameLine();
 
-            if (ImGui.Button($"This Week##asap"))
+            if (ImGui.Button($"本週##asap"))
                 OverrideSideRecsAsapSolver(false);
             ImGui.SameLine();
-            if (ImGui.Button($"Next Week##asap"))
+            if (ImGui.Button($"下週##asap"))
                 OverrideSideRecsAsapSolver(true);
         }
 
         ImGui.Separator();
 
-        ImGuiEx.TextV("Set Schedule:");
+        ImGuiEx.TextV("設定排程：");
         ImGui.SameLine();
-        if (ImGui.Button("This Week"))
+            if (ImGui.Button("本週"))
             ApplyRecommendations(false);
         ImGui.SameLine();
-        if (ImGui.Button("Next Week"))
+            if (ImGui.Button("下週"))
             ApplyRecommendations(true);
         ImGui.SameLine();
-        ImGui.Checkbox("Ignore 4th Workshop", ref IgnoreFourthWorkshop);
+            ImGui.Checkbox("忽略第 4 間工房", ref IgnoreFourthWorkshop);
         ImGui.Separator();
 
         DrawCycleRecommendations();
@@ -138,9 +138,9 @@ public unsafe class WorkshopOCImport
         using var scrollSection = ImRaii.Child("ScrollableSection");
         foreach (var (c, r) in Recommendations.Enumerate())
         {
-            ImGuiEx.TextV($"Cycle {c}:");
+            ImGuiEx.TextV($"生產週期 {c}：");
             ImGui.SameLine();
-            if (ImGui.Button($"Set on Active Cycle##{c}"))
+            if (ImGui.Button($"套用至目前生產週期##{c}"))
                 ApplyRecommendationToCurrentCycle(r);
 
             using var outerTable = ImRaii.Table($"table_{c}", r.Workshops.Count, tableFlags);

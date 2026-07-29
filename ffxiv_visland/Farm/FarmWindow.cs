@@ -13,7 +13,7 @@ public unsafe class FarmWindow : UIAttachedWindow
     private FarmConfig _config;
     private FarmDebug _debug = new();
 
-    public FarmWindow() : base("Farm Automation", "MJIFarmManagement", new(400, 600))
+    public FarmWindow() : base("耕地自動化", "MJIFarmManagement", new(400, 600))
     {
         _config = Service.Config.Get<FarmConfig>();
     }
@@ -35,10 +35,10 @@ public unsafe class FarmWindow : UIAttachedWindow
         using var tabs = ImRaii.TabBar("Tabs");
         if (tabs)
         {
-            using (var tab = ImRaii.TabItem("Main"))
+            using (var tab = ImRaii.TabItem("主要"))
                 if (tab)
                     DrawMain();
-            using (var tab = ImRaii.TabItem("Debug"))
+            using (var tab = ImRaii.TabItem("偵錯"))
                 if (tab)
                     _debug.Draw();
         }
@@ -46,7 +46,7 @@ public unsafe class FarmWindow : UIAttachedWindow
 
     private void DrawMain()
     {
-        if (UICombo.Enum("Auto Collect", ref _config.Collect))
+        if (UICombo.Enum("自動領取", ref _config.Collect))
             _config.NotifyModified();
         ImGui.Separator();
 
@@ -54,7 +54,7 @@ public unsafe class FarmWindow : UIAttachedWindow
         var agent = AgentMJIFarmManagement.Instance();
         if (mji == null || mji->FarmState == null || mji->IslandState.Farm.EligibleForCare == 0 || agent == null)
         {
-            ImGui.TextUnformatted("Mammets not available!");
+            ImGui.TextUnformatted("魔法人偶目前無法使用！");
             return;
         }
 
@@ -71,7 +71,7 @@ public unsafe class FarmWindow : UIAttachedWindow
             // if there's uncollected stuff - propose to collect everything
             using (ImRaii.Disabled(res == CollectResult.EverythingCapped))
             {
-                if (ImGui.Button("Collect all"))
+        if (ImGui.Button("全部領取"))
                     CollectAll();
                 if (res != CollectResult.CanCollectSafely)
                 {
@@ -93,11 +93,11 @@ public unsafe class FarmWindow : UIAttachedWindow
             }
 
             using (ImRaii.Disabled(!canDismiss))
-                if (ImGui.Button("Dismiss all"))
+            if (ImGui.Button("全部解除委託"))
                     DismissAll();
             ImGui.SameLine();
             using (ImRaii.Disabled(!canEntrust))
-                if (ImGui.Button("Entrust all"))
+            if (ImGui.Button("全部委託"))
                     EntrustAll();
         }
     }
@@ -130,23 +130,23 @@ public unsafe class FarmWindow : UIAttachedWindow
                 {
                     using (ImRaii.Disabled(full))
                     {
-                        if (ImGui.Button($"Collect##{i}"))
+                if (ImGui.Button($"領取##{i}"))
                             CollectOne(i, false);
                         ImGui.SameLine();
-                        if (ImGui.Button($"Collect & dismiss##{i}"))
+                if (ImGui.Button($"領取並解除委託##{i}"))
                             CollectOne(i, true);
                     }
                 }
                 else if (slot.UnderCare)
                 {
-                    if (ImGui.Button($"Dismiss##{i}"))
+                if (ImGui.Button($"解除委託##{i}"))
                         DismissOne(i);
                 }
                 else if (slot.SeedItemId != 0)
                 {
                     if (slot.WasUnderCare || Utils.NumCowries() >= 5)
                     {
-                        if (ImGui.Button($"Entrust##{i}"))
+                if (ImGui.Button($"委託##{i}"))
                             EntrustOne(i, slot.SeedItemId);
                     }
                     // else: not enough cowries

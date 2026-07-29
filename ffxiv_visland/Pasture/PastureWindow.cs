@@ -12,7 +12,7 @@ unsafe class PastureWindow : UIAttachedWindow
     private PastureConfig _config;
     private PastureDebug _debug = new();
 
-    public PastureWindow() : base("Pasture Automation", "MJIAnimalManagement", new(400, 600))
+    public PastureWindow() : base("放牧地自動化", "MJIAnimalManagement", new(400, 600))
     {
         _config = Service.Config.Get<PastureConfig>();
     }
@@ -41,10 +41,10 @@ unsafe class PastureWindow : UIAttachedWindow
         using var tabs = ImRaii.TabBar("Tabs");
         if (tabs)
         {
-            using (var tab = ImRaii.TabItem("Main"))
+            using (var tab = ImRaii.TabItem("主要"))
                 if (tab)
                     DrawMain();
-            using (var tab = ImRaii.TabItem("Debug"))
+            using (var tab = ImRaii.TabItem("偵錯"))
                 if (tab)
                     _debug.Draw();
         }
@@ -52,7 +52,7 @@ unsafe class PastureWindow : UIAttachedWindow
 
     private void DrawMain()
     {
-        if (UICombo.Enum("Auto Collect", ref _config.Collect))
+        if (UICombo.Enum("自動領取", ref _config.Collect))
             _config.NotifyModified();
         ImGui.Separator();
 
@@ -60,7 +60,7 @@ unsafe class PastureWindow : UIAttachedWindow
         var agent = AgentMJIAnimalManagement.Instance();
         if (mji == null || mji->PastureHandler == null || mji->IslandState.Pasture.EligibleForCare == 0 || agent == null)
         {
-            ImGui.TextUnformatted("Mammets not available!");
+            ImGui.TextUnformatted("魔法人偶目前無法使用！");
             return;
         }
 
@@ -75,7 +75,7 @@ unsafe class PastureWindow : UIAttachedWindow
             // if there's uncollected stuff - propose to collect everything
             using (ImRaii.Disabled(res == CollectResult.EverythingCapped))
             {
-                if (ImGui.Button("Collect all"))
+        if (ImGui.Button("全部領取"))
                     CollectAll();
                 if (res != CollectResult.CanCollectSafely)
                 {
