@@ -8,7 +8,6 @@ using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game.MJI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Dalamud.Bindings.ImGui;
-using Lumina.Data;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using System;
@@ -25,16 +24,43 @@ public unsafe class WorkshopOCImport
 
     private WorkshopConfig _config;
     private ExcelSheet<MJICraftworksObject> _craftSheet;
-    private List<uint> _craftIds = [];
-    private List<string> _botNames;
+    private Dictionary<uint, WorkshopCraftName> _craftNames = [];
     private List<Func<bool>> _pendingActions = [];
     private bool IgnoreFourthWorkshop;
 
     public WorkshopOCImport()
     {
         _config = Service.Config.Get<WorkshopConfig>();
-        _craftSheet = GenericHelpers.GetSheet<MJICraftworksObject>(); // unlocalised sheet can't be fetched in english
-        _botNames = _craftSheet.Select(r => OfficialNameToBotName(GenericHelpers.GetRow<Item>(r.Item.RowId, ClientLanguage.English)!.Value.Name.ExtractText())).ToList();
+        _craftSheet = GenericHelpers.GetSheet<MJICraftworksObject>();
+        LoadAndValidateCraftNames();
+    }
+
+    private void LoadAndValidateCraftNames()
+    {
+        foreach (var name in WorkshopCraftNames.All)
+        {
+            if (!_craftSheet.TryGetRow(name.CraftObjectId, out var row))
+            {
+                Service.Log.Error($"Workshop name mapping references missing craft row #{name.CraftObjectId} ({name.OCName})");
+                continue;
+            }
+
+            if (row.Item.RowId != name.ItemId || row.CraftingTime != name.CraftingTime)
+            {
+                Service.Log.Error($"Ignoring stale workshop name mapping #{name.CraftObjectId} ({name.OCName}): " +
+                    $"expected item #{name.ItemId}/{name.CraftingTime}h, got #{row.Item.RowId}/{row.CraftingTime}h");
+                continue;
+            }
+
+            _craftNames.Add(name.CraftObjectId, name);
+        }
+
+        var currentCraftCount = _craftSheet.Count(r => r.Item.RowId != 0);
+        if (currentCraftCount != WorkshopCraftNames.All.Count)
+        {
+            Service.Log.Warning($"Workshop name mapping contains {WorkshopCraftNames.All.Count} products, " +
+                $"but the current game data contains {currentCraftCount}; OC imports may need a data update");
+        }
     }
 
     public void Update()
@@ -50,7 +76,7 @@ public unsafe class WorkshopOCImport
         if (ImGui.Button("從剪貼簿匯入推薦排程"))
             ImportRecsFromClipboard(false);
         ImGuiComponents.HelpMarker("用於從剪貼簿匯入 Overseas Casuals Discord 提供的排程。\n" +
-                        "匯入器會在每一行偵測物品名稱（不包含「島產」等前綴）。\n" +
+                        "匯入器會辨識 OC 使用的英文製品名稱，並以繁中名稱顯示預覽。\n" +
                         "你可以直接複製 Discord 中包含其他文字的完整工房排程。");
 
         if (Recommendations.Empty)
@@ -185,7 +211,10 @@ public unsafe class WorkshopOCImport
                             ImGui.Image(Service.TextureProvider.GetFromGameIcon(new GameIconLookup(craftworkItemIcon)).GetWrapOrEmpty().Handle, iconSizeVec, Vector2.Zero, Vector2.One);
 
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted(_botNames[(int)rec.CraftObjectId]);
+                            if (_craftNames.TryGetValue(rec.CraftObjectId, out var craftName))
+                                ImGui.TextUnformatted($"{craftName.TraditionalChineseName} ({craftName.OCName})");
+                            else
+                                ImGui.TextUnformatted($"未知製品 #{rec.CraftObjectId}");
                         }
                     }
                 }
@@ -202,16 +231,16 @@ public unsafe class WorkshopOCImport
             return "";
         }
 
-        var sheetCraft = Service.LuminaGameData.GetExcelSheet<MJICraftworksObject>(Language.English)!;
         var res = "/favors";
         var offset = nextWeek ? 6 : 3;
         for (var i = 0; i < 3; ++i)
         {
             var id = state->CraftObjectIds[offset + i];
             // the bot doesn't like names with apostrophes because it "breaks their formulas"
-            var name = sheetCraft.GetRow(id).Item.Value.Name;
-            if (!name.IsEmpty)
-                res += $" favor{i + 1}:{_botNames[id].Replace("\'", "")}";
+            if (_craftNames.TryGetValue(id, out var craftName))
+                res += $" favor{i + 1}:{craftName.OCName.Replace("\'", "")}";
+            else
+                Service.Log.Warning($"Can't create favor command: unknown craft object #{id}");
         }
         return res;
     }
@@ -370,25 +399,31 @@ public unsafe class WorkshopOCImport
 
     private MJICraftworksObject? TryParseItem(string line)
     {
-        var matchingRows = _botNames.Select((n, i) => (n, i)).Where(t => !string.IsNullOrEmpty(t.n) && IsMatch(line, t.n)).ToList();
-        if (matchingRows.Count > 1)
+        var matchingCrafts = _craftNames.Values
+            .Select(n => (name: n, score: MatchingScore(n, line)))
+            .Where(t => t.score > 0)
+            .OrderByDescending(t => t.score)
+            .ToList();
+        if (matchingCrafts.Count > 1)
         {
-            matchingRows = [.. matchingRows.OrderByDescending(t => MatchingScore(t.n, line))];
-            Service.Log.Info($"Row '{line}' matches {matchingRows.Count} items: {string.Join(", ", matchingRows.Select(r => r.n))}\n" +
+            Service.Log.Info($"Row '{line}' matches {matchingCrafts.Count} items: {string.Join(", ", matchingCrafts.Select(r => r.name.OCName))}\n" +
                 "First one is most likely the correct match. Please report if this is wrong.");
         }
-        return matchingRows.Count > 0 ? _craftSheet.GetRow((uint)matchingRows.First().i) : null;
+        return matchingCrafts.Count > 0 && _craftSheet.TryGetRow(matchingCrafts[0].name.CraftObjectId, out var row) ? row : null;
     }
 
+    private static bool IsMatch(string line, string item)
+        => Regex.IsMatch(line, $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(item)}(?![\p{{L}}\p{{N}}])", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-    private static bool IsMatch(string x, string y) => Regex.IsMatch(x, $@"\b{Regex.Escape(y)}\b");
-    private static object MatchingScore(string item, string line)
+    private static int MatchingScore(WorkshopCraftName item, string line)
     {
         var score = 0;
 
-        // primitive matching based on how long the string matches. Enough for now but could need expanding later
-        if (line.Contains(item))
-            score += item.Length;
+        // Prefer the longest matching alias, e.g. Sweet Popoto Pie over Pie.
+        if (IsMatch(line, item.OCName))
+            score = item.OCName.Length;
+        if (item.OfficialEnglishName != item.OCName && IsMatch(line, item.OfficialEnglishName))
+            score = Math.Max(score, item.OfficialEnglishName.Length);
 
         return score;
     }
