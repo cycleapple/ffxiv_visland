@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -187,10 +187,10 @@ public class GatherRouteExec : IDisposable
         if (RouteDB.TeleportBetweenZones && wp.ZoneID != default && Coordinates.HasAetheryteInZone((uint)wp.ZoneID) && PlayerEx.Territory != wp.ZoneID)
         {
             SetState(State.Teleporting);
-            PluginLog.Information($"Teleporting from [{Player.Territory}] to [{wp.ZoneID}] {Coordinates.GetNearestAetheryte(wp.ZoneID, wp.Position)}");
+            PluginLog.Information($"Teleporting from [{Player.Territory.RowId}] to [{wp.ZoneID}] {Coordinates.GetNearestAetheryte(wp.ZoneID, wp.Position)}");
             P.TaskManager.Enqueue(() => Telepo.Instance()->Teleport(Coordinates.GetNearestAetheryte(wp.ZoneID, wp.Position), 0));
             P.TaskManager.Enqueue(() => Player.Object.IsCasting);
-            P.TaskManager.Enqueue(() => Player.Territory == wp.ZoneID);
+            P.TaskManager.Enqueue(() => Player.Territory.RowId == wp.ZoneID);
             return;
         }
 

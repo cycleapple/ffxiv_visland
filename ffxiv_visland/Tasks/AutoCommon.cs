@@ -1,4 +1,4 @@
-﻿using ECommons.GameHelpers;
+using ECommons.GameHelpers;
 using Lumina.Excel.Sheets;
 using System;
 using System.Numerics;
@@ -50,13 +50,13 @@ public abstract class AutoCommon : AutoTask
     protected async Task TeleportTo(uint territoryId, Vector3 destination)
     {
         using var scope = BeginScope("Teleport");
-        if (Player.Territory == territoryId)
+        if (Player.Territory.RowId == territoryId)
             return; // already in correct zone
 
         var closestAetheryteId = Coords.FindClosestAetheryte(territoryId, destination);
         var teleportAetheryteId = Coords.FindPrimaryAetheryte(closestAetheryteId);
         ErrorIf(teleportAetheryteId == 0, $"Failed to find aetheryte in {territoryId}");
-        if (Player.Territory != GetRow<Aetheryte>(teleportAetheryteId)!.Value.Territory.RowId)
+        if (Player.Territory.RowId != GetRow<Aetheryte>(teleportAetheryteId)!.Value.Territory.RowId)
         {
             ErrorIf(!Game.ExecuteTeleport(teleportAetheryteId), $"Failed to teleport to {teleportAetheryteId}");
             await WaitWhile(() => !Player.IsBusy, "TeleportStart");
@@ -86,7 +86,7 @@ public abstract class AutoCommon : AutoTask
             await WaitWhile(() => Player.IsBusy, "TeleportFirmamentFinish");
         }
 
-        ErrorIf(Player.Territory != territoryId, "Failed to teleport to expected zone");
+        ErrorIf(Player.Territory.RowId != territoryId, "Failed to teleport to expected zone");
     }
 
     protected async Task Mount()

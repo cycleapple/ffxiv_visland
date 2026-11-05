@@ -1,4 +1,4 @@
-﻿using ECommons;
+using ECommons;
 using ECommons.DalamudServices;
 using ECommons.Logging;
 using Lumina.Excel;
@@ -34,7 +34,7 @@ internal class Coordinates
             if (!data.IsAetheryte) continue;
             if (data.Territory.Value.RowId == zoneID)
             {
-                var mapMarker = GenericHelpers.FindRow<MapMarker>(m => m!.DataType == 3 && m.DataKey.RowId == data.RowId);
+                var mapMarker = Svc.Data.GetSubrowExcelSheet<MapMarker>()!.SelectMany(group => group).Where(m => m.DataType == 3 && m.DataKey.RowId == data.RowId).Select(m => (MapMarker?)m).FirstOrDefault();
                 if (mapMarker == null)
                 {
                     PluginLog.Error($"Cannot find aetherytes position for {zoneID}#{data.PlaceName.Value.Name}");

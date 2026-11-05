@@ -1,0 +1,8 @@
+[
+  {
+    "path": "AutoRetainerAPI",
+    "baseCommit": "c3689ae02cc27ea028265f4a369bba82a30756dd",
+    "patch": "patches/dc1ce226682c02d5.patch",
+    "sha256": "2ad58d9c16a16d9a33b5a7d2c44f86b77c6b4632df3de45b14c49d5ba6705453"
+  }
+]
